@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d/control_utils_3d.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+</head>
+
+<script type="module">
+    const videoElement = document.getElementsByClassName('input_video')[0];
+    const canvasElement = document.getElementsByClassName('output_canvas')[0];
+    const canvasCtx = canvasElement.getContext('2d');
+    // const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
+    // const grid = new LandmarkGrid(landmarkContainer);
+    function test(){
+      let arr = [];
+      for(let i = 0; i < 5; i++){
+        let test = {x: Math.random(), y: Math.random(), z: -1.1339976787567139, visibility: 0.9592063426971436};
+        arr.push(test);
+      }
+      return arr;
+    }
+    let arr = test();
+    
+    function onResults(results) {
+      if (!results.poseLandmarks) {
+        // grid.updateLandmarks([]);
+        return;
+      }
+    
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    //   canvasCtx.drawImage(results.segmentationMask, 0, 0,
+    //                       canvasElement.width, canvasElement.height);
+    
+      // Only overwrite existing pixels.
+      canvasCtx.globalCompositeOperation = 'source-in';
+      canvasCtx.fillStyle = '#00FF00';
+      canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+    
+      // Only overwrite missing pixels.
+      canvasCtx.globalCompositeOperation = 'destination-atop';
+      canvasCtx.drawImage(
+          results.image, 0, 0, canvasElement.width, canvasElement.height);
+    
+      canvasCtx.globalCompositeOperation = 'source-over';
+      // let arr = [];
+      // for(let i = 0; i < 5; i++){
+      //   let test = {x: Math.random(), y: Math.random(), z: -1.1339976787567139, visibility: 0.9592063426971436};
+      //   arr.push(test);
+      // }
+        let idk = {x: 0.2756017804145813, y: 0.3918787956237793, z: -1.1339976787567139, visibility: 0.9592063426971436};
+        let idk1 = {x: 0.6756017804145813, y: 0.6918787956237793, z: -1.1339976787567139, visibility: 0.9592063426971436};
+        let idk2 = {x: 0.4756017804145813, y: 0.6918787956237793, z: -1.1339976787567139, visibility: 0.9592063426971436};
+        let idk3 = {x: 0.1756017804145813, y: 0.8918787956237793, z: -1.1339976787567139, visibility: 0.9592063426971436};
+        // let arr = [idk, idk1, idk2, idk3];
+      
+          // let idk = [results.poseLandmarks[0]];
+        
+      drawLandmarks(canvasCtx, arr, {color: '#FFF', lineWidth: 1, radius: 40});
+      if(results.poseLandmarks[15] && results.poseLandmarks[16]){ // checking to make sure that they exist just in case. not required
+          let rightWrist = results.poseLandmarks[16];
+          let leftWrist = results.poseLandmarks[15];
+          let wrists = [leftWrist, rightWrist];
+          // console.log(rightWrist);
+          drawLandmarks(canvasCtx, wrists, {color: '#FF0000', lineWidth: 1, radius: 40}); // draw out just the wrists
+          
+      }
+      
+    //   drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
+    //                  {color: '#00FF00', lineWidth: 4});
+    //   drawLandmarks(canvasCtx, results.poseLandmarks,
+    //                 {color: '#FF0000', lineWidth: 2});
+      canvasCtx.restore();
+    
+    //   grid.updateLandmarks(results.poseWorldLandmarks);
+    }
+    
+    const pose = new Pose({locateFile: (file) => {
+      return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+    }});
+    pose.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      enableSegmentation: true,
+      smoothSegmentation: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+    pose.onResults(onResults);
+    
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await pose.send({image: videoElement});
+      },
+      width: 500,
+      height: 500
+    });
+    camera.start();
+    </script>
+
+
+  <body>
+    <h1>Detects only one hand</h1>
+    <div>Open up your dev tools console to see the landmarks.</div>
+    <div class="container" style="display: flex; gap: 20px;">
+      <div>
+        <h3>Input video</h3>
+        <video class="input_video"></video> <!--video input-->
+      </div>
+      <div>
+        <h3>Output video</h3>
+        <canvas class="output_canvas" width="500px" height="500px"></canvas> <!--video output-->
+      </div>
+      <!-- <div class="landmark-grid-container"></div> -->
+    </div>
+  </body>
+  </html>
